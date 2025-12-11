@@ -1,4 +1,4 @@
-package balti.xposed.pixelifygooglephotos
+package balti.xposed.pixelifygooglephotos.ui
 
 import android.content.Context
 import android.content.Intent
@@ -6,14 +6,15 @@ import android.content.SharedPreferences
 import android.net.Uri
 import android.provider.Settings
 import android.widget.Toast
-import balti.xposed.pixelifygooglephotos.Constants.PREF_DEVICE_TO_SPOOF
-import balti.xposed.pixelifygooglephotos.Constants.PREF_ENABLE_VERBOSE_LOGS
-import balti.xposed.pixelifygooglephotos.Constants.PREF_LAST_VERSION
-import balti.xposed.pixelifygooglephotos.Constants.PREF_OVERRIDE_ROM_FEATURE_LEVELS
-import balti.xposed.pixelifygooglephotos.Constants.PREF_SPOOF_ANDROID_VERSION_FOLLOW_DEVICE
-import balti.xposed.pixelifygooglephotos.Constants.PREF_SPOOF_ANDROID_VERSION_MANUAL
-import balti.xposed.pixelifygooglephotos.Constants.PREF_SPOOF_FEATURES_LIST
-import balti.xposed.pixelifygooglephotos.Constants.PREF_STRICTLY_CHECK_GOOGLE_PHOTOS
+import balti.xposed.pixelifygooglephotos.R
+import balti.xposed.pixelifygooglephotos.ui.Constants.PREF_DEVICE_TO_SPOOF
+import balti.xposed.pixelifygooglephotos.ui.Constants.PREF_ENABLE_VERBOSE_LOGS
+import balti.xposed.pixelifygooglephotos.ui.Constants.PREF_LAST_VERSION
+import balti.xposed.pixelifygooglephotos.ui.Constants.PREF_OVERRIDE_ROM_FEATURE_LEVELS
+import balti.xposed.pixelifygooglephotos.ui.Constants.PREF_SPOOF_ANDROID_VERSION_FOLLOW_DEVICE
+import balti.xposed.pixelifygooglephotos.ui.Constants.PREF_SPOOF_ANDROID_VERSION_MANUAL
+import balti.xposed.pixelifygooglephotos.ui.Constants.PREF_SPOOF_FEATURES_LIST
+import balti.xposed.pixelifygooglephotos.ui.Constants.PREF_STRICTLY_CHECK_GOOGLE_PHOTOS
 import org.json.JSONArray
 import org.json.JSONObject
 import java.io.BufferedWriter

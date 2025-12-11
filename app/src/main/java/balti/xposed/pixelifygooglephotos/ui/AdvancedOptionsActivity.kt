@@ -1,4 +1,4 @@
-package balti.xposed.pixelifygooglephotos
+package balti.xposed.pixelifygooglephotos.ui
 
 import android.content.Context
 import android.os.Bundle
@@ -18,11 +18,12 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import balti.xposed.pixelifygooglephotos.Constants.PREF_ENABLE_VERBOSE_LOGS
-import balti.xposed.pixelifygooglephotos.Constants.PREF_SPOOF_ANDROID_VERSION_FOLLOW_DEVICE
-import balti.xposed.pixelifygooglephotos.Constants.PREF_SPOOF_ANDROID_VERSION_MANUAL
-import balti.xposed.pixelifygooglephotos.Constants.SHARED_PREF_FILE_NAME
+import balti.xposed.pixelifygooglephotos.ui.Constants.PREF_ENABLE_VERBOSE_LOGS
+import balti.xposed.pixelifygooglephotos.ui.Constants.PREF_SPOOF_ANDROID_VERSION_FOLLOW_DEVICE
+import balti.xposed.pixelifygooglephotos.ui.Constants.PREF_SPOOF_ANDROID_VERSION_MANUAL
+import balti.xposed.pixelifygooglephotos.ui.Constants.SHARED_PREF_FILE_NAME
 import com.google.android.material.snackbar.Snackbar
+import balti.xposed.pixelifygooglephotos.R
 
 class AdvancedOptionsActivity : ComponentActivity() {
 

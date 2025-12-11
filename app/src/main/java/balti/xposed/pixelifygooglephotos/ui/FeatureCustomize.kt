@@ -1,7 +1,5 @@
-package balti.xposed.pixelifygooglephotos
+package balti.xposed.pixelifygooglephotos.ui
 
-import android.app.Activity
-import android.content.Context
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -17,15 +15,17 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import balti.xposed.pixelifygooglephotos.Constants.PREF_SPOOF_FEATURES_LIST
-import balti.xposed.pixelifygooglephotos.Constants.SHARED_PREF_FILE_NAME
+import balti.xposed.pixelifygooglephotos.R
+import balti.xposed.pixelifygooglephotos.ui.Constants.PREF_SPOOF_FEATURES_LIST
+import balti.xposed.pixelifygooglephotos.ui.Constants.SHARED_PREF_FILE_NAME
 
 class FeatureCustomize : ComponentActivity() {
 
     private val pref by lazy {
         @Suppress("DEPRECATION")
-        getSharedPreferences(SHARED_PREF_FILE_NAME, Context.MODE_WORLD_READABLE)
+        getSharedPreferences(SHARED_PREF_FILE_NAME, MODE_WORLD_READABLE)
     }
 
     @OptIn(ExperimentalMaterial3Api::class)
@@ -58,10 +58,10 @@ class FeatureCustomize : ComponentActivity() {
                             actions = {
                                 TextButton(onClick = {
                                     pref.edit().putStringSet(PREF_SPOOF_FEATURES_LIST, selectedFeatures).apply()
-                                    setResult(Activity.RESULT_OK)
+                                    setResult(RESULT_OK)
                                     finish()
                                 }) {
-                                    Text("SAVE", fontWeight = androidx.compose.ui.text.font.FontWeight.Bold)
+                                    Text("SAVE", fontWeight = FontWeight.Bold)
                                 }
                             }
                         )

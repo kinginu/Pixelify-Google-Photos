@@ -27,7 +27,7 @@
     <string name="override_rom_feature_levels">Override ROM feature levels.</string>
     <string name="override_rom_feature_levels_desc">Pass false to hooked method for higher feature levels present in ROM
     if user selects a lower Pixel feature level. <b>(Recommended)</b></string>
-    <string name="force_stop_google_photos">Force stop\nGoogle Photos</string>
+    <string name="force_stop_google_photos">Force stop Google Photos</string>
     <string name="enable_verbose_logs">Enable verbose logs</string>
     <string name="module_not_enabled">
         \n

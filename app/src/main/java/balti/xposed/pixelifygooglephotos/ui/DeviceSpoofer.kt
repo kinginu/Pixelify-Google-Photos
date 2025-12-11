@@ -1,18 +1,19 @@
-package balti.xposed.pixelifygooglephotos
+package balti.xposed.pixelifygooglephotos.ui
 
 import android.os.Build
 import android.util.Log
-import balti.xposed.pixelifygooglephotos.Constants.PACKAGE_NAME_GOOGLE_PHOTOS
-import balti.xposed.pixelifygooglephotos.Constants.PREF_DEVICE_TO_SPOOF
-import balti.xposed.pixelifygooglephotos.Constants.PREF_ENABLE_VERBOSE_LOGS
-import balti.xposed.pixelifygooglephotos.Constants.PREF_SPOOF_ANDROID_VERSION_FOLLOW_DEVICE
-import balti.xposed.pixelifygooglephotos.Constants.PREF_SPOOF_ANDROID_VERSION_MANUAL
-import balti.xposed.pixelifygooglephotos.Constants.PREF_STRICTLY_CHECK_GOOGLE_PHOTOS
+import balti.xposed.pixelifygooglephotos.ui.Constants.PACKAGE_NAME_GOOGLE_PHOTOS
+import balti.xposed.pixelifygooglephotos.ui.Constants.PREF_DEVICE_TO_SPOOF
+import balti.xposed.pixelifygooglephotos.ui.Constants.PREF_ENABLE_VERBOSE_LOGS
+import balti.xposed.pixelifygooglephotos.ui.Constants.PREF_SPOOF_ANDROID_VERSION_FOLLOW_DEVICE
+import balti.xposed.pixelifygooglephotos.ui.Constants.PREF_SPOOF_ANDROID_VERSION_MANUAL
+import balti.xposed.pixelifygooglephotos.ui.Constants.PREF_STRICTLY_CHECK_GOOGLE_PHOTOS
 import de.robv.android.xposed.IXposedHookLoadPackage
 import de.robv.android.xposed.XSharedPreferences
 import de.robv.android.xposed.XposedBridge
 import de.robv.android.xposed.XposedHelpers
 import de.robv.android.xposed.callbacks.XC_LoadPackage
+import java.util.HashMap
 
 /**
  * Codenames of pixels:
@@ -87,11 +88,11 @@ class DeviceSpoofer: IXposedHookLoadPackage {
 
         finalDeviceToSpoof?.props?.run {
 
-            if (keys.isEmpty()) return
+            if (this.keys.isEmpty()) return
             val classLoader = lpparam?.classLoader ?: return
 
             val classBuild = XposedHelpers.findClass("android.os.Build", classLoader)
-            keys.forEach {
+            this.keys.forEach { // これで Map のキーの Iterable が取得され、forEach が正しく解決される
                 XposedHelpers.setStaticObjectField(classBuild, it, this[it])
                 if (verboseLog) log("DEVICE PROPS: $it - ${this[it]}")
             }
@@ -103,7 +104,7 @@ class DeviceSpoofer: IXposedHookLoadPackage {
             val classLoader = lpparam?.classLoader ?: return
             val classBuild = XposedHelpers.findClass("android.os.Build.VERSION", classLoader)
 
-            keys.forEach {
+            this.keys.forEach {
                 XposedHelpers.setStaticObjectField(classBuild, it, this[it])
                 if (verboseLog) log("VERSION SPOOF: $it - ${this[it]}")
             }

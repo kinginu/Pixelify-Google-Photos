@@ -24,7 +24,7 @@
             android:name="xposedscope"
             android:resource="@array/module_scope" />
 
-        <activity android:name=".ActivityMain"
+        <activity android:name=".ui.MainActivity"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -32,9 +32,7 @@
             </intent-filter>
         </activity>
 
-        <activity android:name=".FeatureCustomize"/>
-
-        <activity android:name=".AdvancedOptionsActivity"/>
+        <activity android:name=".ui.FeatureCustomize"/>
 
         <!--Guide at: https://infinum.com/the-capsized-eight/share-files-using-fileprovider-->
         <provider
