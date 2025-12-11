@@ -13,10 +13,12 @@
 
     <string name="app_name">Pixelify GPhotos</string>
 
-    <!--activity_main.xml-->
     <string name="reset">Reset</string>
+    <string name="reset_settings">Reset Settings</string>
     <string name="device_to_spoof">Device to spoof</string>
     <string name="spoofs_build_and_features">Spoofs build.prop and feature flags.</string>
+    <string name="spoof_android_version_follow_device">Follow device Android version</string>
+    <string name="apply_changes">Apply Changes</string>
     <string name="customize_feature_flags">Customize feature flags.</string>
     <string name="feature_flags_changed">Feature flags changed!</string>
     <string name="spoof_only_in_google_photos">Make sure to spoof only in Google Photos.</string>
@@ -26,6 +28,7 @@
     <string name="override_rom_feature_levels_desc">Pass false to hooked method for higher feature levels present in ROM
     if user selects a lower Pixel feature level. <b>(Recommended)</b></string>
     <string name="force_stop_google_photos">Force stop\nGoogle Photos</string>
+    <string name="enable_verbose_logs">Enable verbose logs</string>
     <string name="module_not_enabled">
         \n
         Looks like the this app module is not enabled.\n
@@ -65,10 +68,9 @@
     <string name="import_complete">Import complete!</string>
     <string name="advanced_options">Advanced options</string>
 
-    <!--feature_customize.xml-->
     <string name="save">Save</string>
 
-    <!--advanced_options_activity.xml-->
+
     <string name="enable_verbose_logging">Enable verbose logging</string>
     <string name="enable_verbose_logging_desc">More debug information in LSPosed / EdXposed logs and Android logcat.\n
         To share logs, open LSPosed / EdXposed -> Logs -> top Save icon. Then share the created file.

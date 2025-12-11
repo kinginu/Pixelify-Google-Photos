@@ -1,9 +1,9 @@
-<resources xmlns:tools="http://schemas.android.com/tools">
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
     <style name="Theme.Pixelify" parent="Theme.Material3.DayNight.NoActionBar">
-        <item name="colorPrimary">@color/my_primary</item>
-        <item name="colorPrimaryVariant">@color/my_primary_container</item>
-        <item name="colorOnPrimary">@color/my_on_primary</item>
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:windowLightStatusBar">true</item>
 
-        <item name="android:statusBarColor">?attr/colorPrimaryVariant</item>
+        <item name="android:colorBackground">#FFFBFE</item>
     </style>
 </resources>
