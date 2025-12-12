@@ -19,6 +19,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
+import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -108,13 +109,15 @@ class ActivityMain : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        val dynamicSupported = Build.VERSION.SDK_INT >= Build.VERSION_CODES.S
+        val context = this
         setContent {
+            val colorScheme = when {
+                dynamicSupported -> dynamicLightColorScheme(context)
+                else -> lightColorScheme() // フォールバック: 標準のM3 Baseline Theme
+            }
             MaterialTheme(
-                colorScheme = lightColorScheme(
-                    primary = Color(0xFF6750A4), onPrimary = Color.White,
-                    secondary = Color(0xFF625B71), background = Color(0xFFF3F3F3),
-                    surface = Color.White
-                )
+                colorScheme = colorScheme
             ) {
                 MainAppStructure()
             }
@@ -233,8 +236,8 @@ class ActivityMain : ComponentActivity() {
                     )
                 )
 
-                // 5. Sunkist Ultra Box (Info & Links)
-                Text("Sunkist Ultra", style = MaterialTheme.typography.titleMedium, modifier = Modifier.padding(start = 4.dp, top = 16.dp))
+                // 5. Info & Links
+                Text("Info & Links", style = MaterialTheme.typography.titleMedium, modifier = Modifier.padding(start = 4.dp, top = 16.dp))
 
                 Card(colors = CardDefaults.cardColors(containerColor = Color.White)) {
                     Column {
@@ -310,10 +313,9 @@ class ActivityMain : ComponentActivity() {
                         pref?.edit()?.putStringSet(PREF_SPOOF_FEATURES_LIST, DeviceProps.getFeaturesUpToFromDeviceName(newDevice))?.apply()
                     })
                 }
-            }
 
-            // Feature Flags & Options
-            Card(colors = CardDefaults.cardColors(containerColor = Color.White)) {
+                Divider()
+
                 Column {
                     SettingSwitchItem(stringResource(R.string.override_rom_feature_levels), overrideRomFeatures) { overrideRomFeatures = it; saveBoolean(PREF_OVERRIDE_ROM_FEATURE_LEVELS, it) }
                     Divider()
@@ -336,26 +338,41 @@ class ActivityMain : ComponentActivity() {
             // Actions (Force Stop / Open)
             Text("Actions", style = MaterialTheme.typography.titleMedium, modifier = Modifier.padding(start = 4.dp, top = 8.dp))
 
-            // Force Stop
-            Button(
-                onClick = { utils.forceStopPackage(Constants.PACKAGE_NAME_GOOGLE_PHOTOS, context) },
-                modifier = Modifier.fillMaxWidth(),
-                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
-            ) {
-                Icon(Icons.Default.Stop, contentDescription = null)
-                Spacer(modifier = Modifier.width(8.dp))
-                Text(stringResource(R.string.force_stop_google_photos))
-            }
+            Card(colors = CardDefaults.cardColors(containerColor = Color.White)) {
+                Column {
+                    val rowPadding = Modifier.padding(horizontal = 16.dp, vertical = 12.dp)
 
-            // Open App
-            Button(
-                onClick = { utils.openApplication(Constants.PACKAGE_NAME_GOOGLE_PHOTOS, context) },
-                modifier = Modifier.fillMaxWidth(),
-                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
-            ) {
-                Icon(painter = painterResource(android.R.drawable.ic_menu_gallery), contentDescription = null)
-                Spacer(modifier = Modifier.width(8.dp))
-                Text("Open Google Photos")
+                    // 1. Force Stop Google Photos
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable { utils.forceStopPackage(Constants.PACKAGE_NAME_GOOGLE_PHOTOS, context) }
+                            .then(rowPadding), // Paddingを適用
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Text(stringResource(R.string.force_stop_google_photos), color = MaterialTheme.colorScheme.error)
+                        }
+                        Icon(Icons.Default.OpenInNew, contentDescription = null, tint = Color.Gray)
+                    }
+                    Divider(modifier = Modifier.padding(start = 16.dp), color = Color.LightGray.copy(alpha = 0.3f))
+
+                    // 2. Open Google Photos
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable { utils.openApplication(Constants.PACKAGE_NAME_GOOGLE_PHOTOS, context) }
+                            .then(rowPadding), // Paddingを適用
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Text("Open Google Photos", color = MaterialTheme.colorScheme.onSurface)
+                        }
+                        Icon(Icons.Default.OpenInNew, contentDescription = null, tint = Color.Gray)
+                    }
+                }
             }
 
             // Advanced Settings
@@ -472,7 +489,7 @@ class ActivityMain : ComponentActivity() {
     @Composable
     fun InfoCard(items: List<Pair<String, String>>) {
         Card(colors = CardDefaults.cardColors(containerColor = Color.White), modifier = Modifier.fillMaxWidth()) {
-            Column(modifier = Modifier.padding(16.dp)) {
+            Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)) {
                 items.forEachIndexed { index, (label, value) ->
                     Row(
                         modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
@@ -536,7 +553,7 @@ class ActivityMain : ComponentActivity() {
     @Composable
     fun SettingSwitchItem(title: String, checked: Boolean, onCheckedChange: (Boolean) -> Unit) {
         Row(
-            modifier = Modifier.fillMaxWidth().clickable { onCheckedChange(!checked) }.padding(16.dp),
+            modifier = Modifier.fillMaxWidth().clickable { onCheckedChange(!checked) }.padding(horizontal = 16.dp, vertical = 8.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
