@@ -1,4 +1,4 @@
-package balti.xposed.pixelifygooglephotos
+package balti.xposed.pixelifygooglephotos.ui
 
 import android.content.Context
 import android.os.Bundle
@@ -16,13 +16,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import balti.xposed.pixelifygooglephotos.Constants.PREF_ENABLE_VERBOSE_LOGS
 import balti.xposed.pixelifygooglephotos.Constants.PREF_SPOOF_ANDROID_VERSION_FOLLOW_DEVICE
 import balti.xposed.pixelifygooglephotos.Constants.PREF_SPOOF_ANDROID_VERSION_MANUAL
 import balti.xposed.pixelifygooglephotos.Constants.SHARED_PREF_FILE_NAME
-import com.google.android.material.snackbar.Snackbar
+import balti.xposed.pixelifygooglephotos.R
+import balti.xposed.pixelifygooglephotos.spoof.DeviceProps
 
 class AdvancedOptionsActivity : ComponentActivity() {
 
@@ -99,7 +99,6 @@ class AdvancedOptionsActivity : ComponentActivity() {
                         Button(
                             onClick = {
                                 if (manualVersion.isNotBlank() && DeviceProps.getAndroidVersionFromLabel(manualVersion) == null) {
-                                    // Invalid version (Simple Toast fallback as Snackbar needs ScaffoldState in simple impl)
                                     android.widget.Toast.makeText(this@AdvancedOptionsActivity, "Invalid android version", android.widget.Toast.LENGTH_SHORT).show()
                                 } else {
                                     pref.edit().putString(PREF_SPOOF_ANDROID_VERSION_MANUAL, if (manualVersion.isBlank()) null else manualVersion).apply()

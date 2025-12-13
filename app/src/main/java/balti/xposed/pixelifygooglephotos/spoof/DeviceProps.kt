@@ -1,4 +1,4 @@
-package balti.xposed.pixelifygooglephotos
+package balti.xposed.pixelifygooglephotos.spoof
 
 /**
  * Build values taken from:

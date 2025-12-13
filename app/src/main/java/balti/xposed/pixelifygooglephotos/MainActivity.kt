@@ -18,15 +18,14 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.automirrored.filled.OpenInNew
 import androidx.compose.material3.*
-import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -51,13 +50,16 @@ import balti.xposed.pixelifygooglephotos.Constants.SHARED_PREF_FILE_NAME
 import balti.xposed.pixelifygooglephotos.Constants.TELEGRAM_GROUP
 import balti.xposed.pixelifygooglephotos.Constants.UPDATE_INFO_URL
 import balti.xposed.pixelifygooglephotos.Constants.UPDATE_INFO_URL2
+import balti.xposed.pixelifygooglephotos.spoof.DeviceProps
+import balti.xposed.pixelifygooglephotos.ui.* // ComposablesとActivityをインポート
+import balti.xposed.pixelifygooglephotos.utils.Utils
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.json.JSONObject
 import java.io.File
 import java.net.URL
 
-class ActivityMain : ComponentActivity() {
+class MainActivity : ComponentActivity() {
 
     private val utils by lazy { Utils() }
 
@@ -68,7 +70,6 @@ class ActivityMain : ComponentActivity() {
         } catch (_: Exception) { null }
     }
 
-    // 動的にアプリバージョンを取得
     private val appVersion: String
         get() {
             return try {
@@ -114,7 +115,7 @@ class ActivityMain : ComponentActivity() {
         setContent {
             val colorScheme = when {
                 dynamicSupported -> dynamicLightColorScheme(context)
-                else -> lightColorScheme() // フォールバック: 標準のM3 Baseline Theme
+                else -> lightColorScheme()
             }
             MaterialTheme(
                 colorScheme = colorScheme
@@ -129,16 +130,14 @@ class ActivityMain : ComponentActivity() {
         val navController = rememberNavController()
         val items = listOf(Screen.Home, Screen.Settings)
 
-        // 再起動通知用のステートをここで管理（どの画面からでも変更通知を出せるように）
         var showRebootSnack by remember { mutableStateOf(false) }
 
-        // アップデートチェック
         var updateUrl by remember { mutableStateOf<String?>(null) }
         LaunchedEffect(Unit) {
-            withContext(Dispatchers.IO) {
-                updateUrl = checkUpdateAvailable()
-            }
+            val url = withContext(Dispatchers.IO) { checkUpdateAvailable() }
+            updateUrl = url
         }
+
 
         Scaffold(
             bottomBar = {
@@ -201,7 +200,6 @@ class ActivityMain : ComponentActivity() {
                     .padding(16.dp),
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                // 1. App Name Header
                 Text(
                     text = stringResource(R.string.app_name),
                     style = MaterialTheme.typography.headlineMedium,
@@ -210,14 +208,15 @@ class ActivityMain : ComponentActivity() {
                     modifier = Modifier.padding(bottom = 8.dp)
                 )
 
-                // 2. Module Status
+                // UI Components from ui/Composables.kt
                 StatusCard(isActive = isModuleActive)
 
-                // 3. Update Info (Visible only if update available)
                 if (updateUrl != null) {
                     Card(
                         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.tertiaryContainer),
-                        modifier = Modifier.fillMaxWidth().clickable { openWebLink(updateUrl!!) }
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable { openWebLink(updateUrl) }
                     ) {
                         Row(modifier = Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
                             Icon(Icons.Default.Update, contentDescription = null)
@@ -227,7 +226,6 @@ class ActivityMain : ComponentActivity() {
                     }
                 }
 
-                // 4. Device Info (Android Ver, Model, App Ver)
                 InfoCard(
                     items = listOf(
                         "Android Version" to Build.VERSION.RELEASE,
@@ -236,7 +234,6 @@ class ActivityMain : ComponentActivity() {
                     )
                 )
 
-                // 5. Info & Links
                 Text("Info & Links", style = MaterialTheme.typography.titleMedium, modifier = Modifier.padding(start = 4.dp, top = 16.dp))
 
                 Card(colors = CardDefaults.cardColors(containerColor = Color.White)) {
@@ -246,14 +243,14 @@ class ActivityMain : ComponentActivity() {
                             icon = Icons.Default.Upcoming,
                             onClick = { Toast.makeText(context, "Coming soon!", Toast.LENGTH_SHORT).show() }
                         )
-                        Divider(modifier = Modifier.padding(horizontal = 16.dp), color = Color.LightGray.copy(alpha = 0.3f))
+                        HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp), color = Color.LightGray.copy(alpha = 0.3f))
 
                         LinkItem(
                             title = "Support Us",
                             icon = Icons.Default.Favorite,
                             onClick = { openWebLink(TELEGRAM_GROUP) }
                         )
-                        Divider(modifier = Modifier.padding(horizontal = 16.dp), color = Color.LightGray.copy(alpha = 0.3f))
+                        HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp), color = Color.LightGray.copy(alpha = 0.3f))
 
                         LinkItem(
                             title = "Learn KernelSU",
@@ -262,8 +259,6 @@ class ActivityMain : ComponentActivity() {
                         )
                     }
                 }
-
-                // Bottom padding for Scroll
                 Spacer(modifier = Modifier.height(24.dp))
             }
         }
@@ -272,10 +267,9 @@ class ActivityMain : ComponentActivity() {
     @Composable
     fun SettingScreen(onSettingChanged: () -> Unit) {
         val scrollState = rememberScrollState()
-        val context = LocalContext.current // Contextを取得
+        val context = LocalContext.current
         val isModuleActive = pref != null
 
-        // 設定変更時に保存し、スナックバーを表示するヘルパー関数
         fun saveString(key: String, value: String) {
             pref?.edit()?.putString(key, value)?.apply()
             if(isModuleActive) onSettingChanged()
@@ -285,7 +279,6 @@ class ActivityMain : ComponentActivity() {
             if(isModuleActive) onSettingChanged()
         }
 
-        // State definition
         var deviceToSpoof by remember { mutableStateOf(pref?.getString(PREF_DEVICE_TO_SPOOF, DeviceProps.defaultDeviceName) ?: DeviceProps.defaultDeviceName) }
         var overrideRomFeatures by remember { mutableStateOf(pref?.getBoolean(PREF_OVERRIDE_ROM_FEATURE_LEVELS, true) ?: true) }
         var spoofOnlyPhotos by remember { mutableStateOf(pref?.getBoolean(PREF_STRICTLY_CHECK_GOOGLE_PHOTOS, true) ?: true) }
@@ -302,9 +295,8 @@ class ActivityMain : ComponentActivity() {
         ) {
             Text("Settings", style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
 
-            // Device Selection
             Card(colors = CardDefaults.cardColors(containerColor = Color.White)) {
-                Column(modifier = Modifier.padding(16.dp)) {
+                Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp)) {
                     Text("Target Device", style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.primary)
                     Spacer(modifier = Modifier.height(8.dp))
                     DeviceSelector(currentDevice = deviceToSpoof, onDeviceSelected = { newDevice ->
@@ -314,18 +306,33 @@ class ActivityMain : ComponentActivity() {
                     })
                 }
 
-                Divider()
+                HorizontalDivider()
 
                 Column {
-                    SettingSwitchItem(stringResource(R.string.override_rom_feature_levels), overrideRomFeatures) { overrideRomFeatures = it; saveBoolean(PREF_OVERRIDE_ROM_FEATURE_LEVELS, it) }
-                    Divider()
+                    SettingSwitchItem(
+                        stringResource(R.string.override_rom_feature_levels),
+                        overrideRomFeatures
+                    ) {
+                        overrideRomFeatures = it; saveBoolean(
+                        PREF_OVERRIDE_ROM_FEATURE_LEVELS,
+                        it
+                    )
+                    }
+                    HorizontalDivider()
                     SettingSwitchItem(stringResource(R.string.spoof_only_in_google_photos), spoofOnlyPhotos) { spoofOnlyPhotos = it; saveBoolean(PREF_STRICTLY_CHECK_GOOGLE_PHOTOS, it) }
-                    Divider()
+                    HorizontalDivider()
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .clickable { childActivityLauncher.launch(Intent(context, FeatureCustomize::class.java)) }
-                            .padding(16.dp),
+                            .clickable {
+                                childActivityLauncher.launch(
+                                    Intent(
+                                        context,
+                                        FeatureCustomize::class.java
+                                    )
+                                )
+                            }
+                            .padding(horizontal = 16.dp, vertical = 12.dp),
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
@@ -335,58 +342,63 @@ class ActivityMain : ComponentActivity() {
                 }
             }
 
-            // Actions (Force Stop / Open)
             Text("Actions", style = MaterialTheme.typography.titleMedium, modifier = Modifier.padding(start = 4.dp, top = 8.dp))
 
             Card(colors = CardDefaults.cardColors(containerColor = Color.White)) {
                 Column {
                     val rowPadding = Modifier.padding(horizontal = 16.dp, vertical = 12.dp)
 
-                    // 1. Force Stop Google Photos
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .clickable { utils.forceStopPackage(Constants.PACKAGE_NAME_GOOGLE_PHOTOS, context) }
-                            .then(rowPadding), // Paddingを適用
+                            .clickable {
+                                utils.forceStopPackage(
+                                    Constants.PACKAGE_NAME_GOOGLE_PHOTOS,
+                                    context
+                                )
+                            }
+                            .then(rowPadding),
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Text(stringResource(R.string.force_stop_google_photos), color = MaterialTheme.colorScheme.error)
                         }
-                        Icon(Icons.Default.OpenInNew, contentDescription = null, tint = Color.Gray)
+                        Icon(Icons.AutoMirrored.Filled.OpenInNew, contentDescription = null, tint = Color.Gray)
                     }
-                    Divider(modifier = Modifier.padding(start = 16.dp), color = Color.LightGray.copy(alpha = 0.3f))
+                    HorizontalDivider(modifier = Modifier.padding(start = 16.dp), color = Color.LightGray.copy(alpha = 0.3f))
 
-                    // 2. Open Google Photos
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .clickable { utils.openApplication(Constants.PACKAGE_NAME_GOOGLE_PHOTOS, context) }
-                            .then(rowPadding), // Paddingを適用
+                            .clickable {
+                                utils.openApplication(
+                                    Constants.PACKAGE_NAME_GOOGLE_PHOTOS,
+                                    context
+                                )
+                            }
+                            .then(rowPadding),
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Text("Open Google Photos", color = MaterialTheme.colorScheme.onSurface)
                         }
-                        Icon(Icons.Default.OpenInNew, contentDescription = null, tint = Color.Gray)
+                        Icon(Icons.AutoMirrored.Filled.OpenInNew, contentDescription = null, tint = Color.Gray)
                     }
                 }
             }
 
-            // Advanced Settings
             Text("Advanced", style = MaterialTheme.typography.titleMedium, modifier = Modifier.padding(start = 4.dp, top = 8.dp))
 
             Card(colors = CardDefaults.cardColors(containerColor = Color.White)) {
                 Column {
                     SettingSwitchItem(stringResource(R.string.enable_verbose_logs), verboseLogs) { verboseLogs = it; saveBoolean(PREF_ENABLE_VERBOSE_LOGS, it) }
-                    Divider()
+                    HorizontalDivider()
                     SettingSwitchItem(stringResource(R.string.spoof_android_version_follow_device), followDevice) { followDevice = it; saveBoolean(PREF_SPOOF_ANDROID_VERSION_FOLLOW_DEVICE, it) }
                 }
             }
 
-            // Manual Version
             if (!followDevice) {
                 Card(colors = CardDefaults.cardColors(containerColor = Color.White)) {
                     Column(modifier = Modifier.padding(16.dp)) {
@@ -417,7 +429,6 @@ class ActivityMain : ComponentActivity() {
                 }
             }
 
-            // Config File
             Text("Configuration File", style = MaterialTheme.typography.titleMedium, modifier = Modifier.padding(top = 16.dp))
             Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
                 Button(onClick = {
@@ -448,7 +459,6 @@ class ActivityMain : ComponentActivity() {
                 }
             }
 
-            // Reset Button (修正済み)
             OutlinedButton(
                 onClick = {
                     pref?.edit()?.clear()?.apply()
@@ -460,109 +470,10 @@ class ActivityMain : ComponentActivity() {
             ) {
                 Text(stringResource(R.string.reset_settings))
             }
-
-            // Bottom Padding
             Spacer(modifier = Modifier.height(24.dp))
         }
     }
 
-    // --- Components ---
-
-    @Composable
-    fun StatusCard(isActive: Boolean) {
-        val color = if (isActive) Color(0xFFE6F4EA) else MaterialTheme.colorScheme.errorContainer
-        val contentColor = if (isActive) Color(0xFF1E8E3E) else MaterialTheme.colorScheme.onErrorContainer
-        val icon = if (isActive) Icons.Default.CheckCircle else Icons.Default.Warning
-
-        Card(colors = CardDefaults.cardColors(containerColor = color), modifier = Modifier.fillMaxWidth()) {
-            Row(modifier = Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
-                Icon(icon, contentDescription = null, tint = contentColor, modifier = Modifier.size(32.dp))
-                Spacer(modifier = Modifier.width(16.dp))
-                Column {
-                    Text(if (isActive) "Module Active" else "Module Not Active", fontWeight = FontWeight.Bold, color = contentColor)
-                    if (!isActive) Text(stringResource(R.string.module_not_enabled), style = MaterialTheme.typography.bodySmall, color = contentColor)
-                }
-            }
-        }
-    }
-
-    @Composable
-    fun InfoCard(items: List<Pair<String, String>>) {
-        Card(colors = CardDefaults.cardColors(containerColor = Color.White), modifier = Modifier.fillMaxWidth()) {
-            Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)) {
-                items.forEachIndexed { index, (label, value) ->
-                    Row(
-                        modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
-                        horizontalArrangement = Arrangement.SpaceBetween
-                    ) {
-                        Text(label, color = Color.Gray)
-                        Text(value, fontWeight = FontWeight.SemiBold)
-                    }
-                    if (index < items.size - 1) Divider(modifier = Modifier.padding(vertical = 4.dp), color = Color.LightGray.copy(alpha = 0.3f))
-                }
-            }
-        }
-    }
-
-    @Composable
-    fun LinkItem(title: String, icon: ImageVector, onClick: () -> Unit) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .clickable(onClick = onClick)
-                .padding(16.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Icon(icon, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
-            Spacer(modifier = Modifier.width(16.dp))
-            Text(
-                text = title,
-                style = MaterialTheme.typography.bodyLarge,
-                modifier = Modifier.weight(1f)
-            )
-            Icon(
-                imageVector = Icons.Default.ChevronRight,
-                contentDescription = null,
-                tint = Color.Gray
-            )
-        }
-    }
-
-    @OptIn(ExperimentalMaterial3Api::class)
-    @Composable
-    fun DeviceSelector(currentDevice: String, onDeviceSelected: (String) -> Unit) {
-        var expanded by remember { mutableStateOf(false) }
-        val devices = DeviceProps.allDevices.map { it.deviceName }
-        ExposedDropdownMenuBox(expanded = expanded, onExpandedChange = { expanded = !expanded }) {
-            OutlinedTextField(
-                modifier = Modifier.fillMaxWidth().menuAnchor(),
-                readOnly = true,
-                value = currentDevice,
-                onValueChange = {},
-                trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
-                colors = ExposedDropdownMenuDefaults.outlinedTextFieldColors(),
-            )
-            ExposedDropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
-                devices.forEach { selectionOption ->
-                    DropdownMenuItem(text = { Text(selectionOption) }, onClick = { onDeviceSelected(selectionOption); expanded = false }, contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding)
-                }
-            }
-        }
-    }
-
-    @Composable
-    fun SettingSwitchItem(title: String, checked: Boolean, onCheckedChange: (Boolean) -> Unit) {
-        Row(
-            modifier = Modifier.fillMaxWidth().clickable { onCheckedChange(!checked) }.padding(horizontal = 16.dp, vertical = 8.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween
-        ) {
-            Text(text = title, style = MaterialTheme.typography.bodyLarge)
-            Switch(checked = checked, onCheckedChange = onCheckedChange)
-        }
-    }
-
-    // --- Helpers ---
     sealed class Screen(val route: String, val resourceId: String, val icon: ImageVector) {
         object Home : Screen("home", "Home", Icons.Default.Home)
         object Settings : Screen("settings", "Settings", Icons.Default.Settings)

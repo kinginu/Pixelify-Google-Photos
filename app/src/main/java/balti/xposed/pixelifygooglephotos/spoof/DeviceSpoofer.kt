@@ -1,7 +1,8 @@
-package balti.xposed.pixelifygooglephotos
+package balti.xposed.pixelifygooglephotos.spoof
 
 import android.os.Build
 import android.util.Log
+import balti.xposed.pixelifygooglephotos.Constants
 import balti.xposed.pixelifygooglephotos.Constants.PACKAGE_NAME_GOOGLE_PHOTOS
 import balti.xposed.pixelifygooglephotos.Constants.PREF_DEVICE_TO_SPOOF
 import balti.xposed.pixelifygooglephotos.Constants.PREF_ENABLE_VERBOSE_LOGS
@@ -13,6 +14,7 @@ import de.robv.android.xposed.XSharedPreferences
 import de.robv.android.xposed.XposedBridge
 import de.robv.android.xposed.XposedHelpers
 import de.robv.android.xposed.callbacks.XC_LoadPackage
+import java.util.HashMap
 
 /**
  * Codenames of pixels:
@@ -86,26 +88,29 @@ class DeviceSpoofer: IXposedHookLoadPackage {
         log("Device spoof: ${finalDeviceToSpoof?.deviceName}")
 
         finalDeviceToSpoof?.props?.run {
+            // 修正: HashMap.keySet.isEmpty() -> isEmpty()
+            if (isEmpty()) return
 
-            if (keys.isEmpty()) return
             val classLoader = lpparam?.classLoader ?: return
-
             val classBuild = XposedHelpers.findClass("android.os.Build", classLoader)
-            keys.forEach {
-                XposedHelpers.setStaticObjectField(classBuild, it, this[it])
-                if (verboseLog) log("DEVICE PROPS: $it - ${this[it]}")
-            }
 
+            // 修正: HashMap.keys.forEach -> forEach { (key, value) -> ... }
+            // マップ自身(this)をループさせ、キーと値を直接取り出します
+            forEach { (key, value) ->
+                XposedHelpers.setStaticObjectField(classBuild, key, value)
+                if (verboseLog) log("DEVICE PROPS: $key - $value")
+            }
         }
 
+        // 2つ目のブロック: Androidバージョンの偽装
         androidVersionToSpoof?.getAsMap()?.run {
-
+            // ここも同様に修正
             val classLoader = lpparam?.classLoader ?: return
             val classBuild = XposedHelpers.findClass("android.os.Build.VERSION", classLoader)
 
-            keys.forEach {
-                XposedHelpers.setStaticObjectField(classBuild, it, this[it])
-                if (verboseLog) log("VERSION SPOOF: $it - ${this[it]}")
+            forEach { (key, value) ->
+                XposedHelpers.setStaticObjectField(classBuild, key, value)
+                if (verboseLog) log("VERSION SPOOF: $key - $value")
             }
         }
 

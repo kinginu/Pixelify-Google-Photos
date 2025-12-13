@@ -1,4 +1,4 @@
-package balti.xposed.pixelifygooglephotos
+package balti.xposed.pixelifygooglephotos.utils
 
 import android.content.Context
 import android.content.Intent
@@ -6,20 +6,13 @@ import android.content.SharedPreferences
 import android.net.Uri
 import android.provider.Settings
 import android.widget.Toast
-import balti.xposed.pixelifygooglephotos.Constants.PREF_DEVICE_TO_SPOOF
-import balti.xposed.pixelifygooglephotos.Constants.PREF_ENABLE_VERBOSE_LOGS
-import balti.xposed.pixelifygooglephotos.Constants.PREF_LAST_VERSION
-import balti.xposed.pixelifygooglephotos.Constants.PREF_OVERRIDE_ROM_FEATURE_LEVELS
-import balti.xposed.pixelifygooglephotos.Constants.PREF_SPOOF_ANDROID_VERSION_FOLLOW_DEVICE
-import balti.xposed.pixelifygooglephotos.Constants.PREF_SPOOF_ANDROID_VERSION_MANUAL
-import balti.xposed.pixelifygooglephotos.Constants.PREF_SPOOF_FEATURES_LIST
-import balti.xposed.pixelifygooglephotos.Constants.PREF_STRICTLY_CHECK_GOOGLE_PHOTOS
+import balti.xposed.pixelifygooglephotos.Constants
+import balti.xposed.pixelifygooglephotos.R
 import org.json.JSONArray
 import org.json.JSONObject
 import java.io.BufferedWriter
 import java.io.ByteArrayOutputStream
 import java.io.OutputStreamWriter
-
 
 /**
  * Utilities class for various functions.
@@ -117,7 +110,10 @@ class Utils {
 
         // List of keys from shared preference which need not be copied to file.
         // Or copied later like PREF_SPOOF_FEATURES_LIST.
-        val fieldsNotToCopy = listOf(PREF_LAST_VERSION, PREF_SPOOF_FEATURES_LIST)
+        val fieldsNotToCopy = listOf(
+            Constants.PREF_LAST_VERSION,
+            Constants.PREF_SPOOF_FEATURES_LIST
+        )
 
         val outputStream = context.contentResolver.openOutputStream(uri)
         val writer = BufferedWriter(OutputStreamWriter(outputStream))
@@ -130,8 +126,8 @@ class Utils {
         }
 
         // Store PREF_SPOOF_FEATURES_LIST
-        pref?.getStringSet(PREF_SPOOF_FEATURES_LIST, setOf())?.let {
-            jsonObject.put(PREF_SPOOF_FEATURES_LIST, JSONArray(it.toTypedArray()))
+        pref?.getStringSet(Constants.PREF_SPOOF_FEATURES_LIST, setOf())?.let {
+            jsonObject.put(Constants.PREF_SPOOF_FEATURES_LIST, JSONArray(it.toTypedArray()))
         }
 
         writer.run {
@@ -176,25 +172,25 @@ class Utils {
          */
         pref?.edit()?.apply {
 
-            PREF_SPOOF_FEATURES_LIST.let { key ->
+            Constants.PREF_SPOOF_FEATURES_LIST.let { key ->
                 jsonObject.optJSONArray(key)?.let {
                     putStringSet(key, convertJsonArrayToList(it).toSet())
                 }
             }
 
-            PREF_DEVICE_TO_SPOOF.let { key ->
+            Constants.PREF_DEVICE_TO_SPOOF.let { key ->
                 jsonObject.optString(key)?.let {
                     putString(key, it)
                 }
             }
 
-            PREF_STRICTLY_CHECK_GOOGLE_PHOTOS.let { key ->
+            Constants.PREF_STRICTLY_CHECK_GOOGLE_PHOTOS.let { key ->
                 jsonObject.optBoolean(key, true).let {
                     putBoolean(key, it)
                 }
             }
 
-            PREF_OVERRIDE_ROM_FEATURE_LEVELS.let { key ->
+            Constants.PREF_OVERRIDE_ROM_FEATURE_LEVELS.let { key ->
                 jsonObject.optBoolean(key, true).let {
                     putBoolean(key, it)
                 }
@@ -202,19 +198,19 @@ class Utils {
 
             /** Advanced options */
 
-            PREF_ENABLE_VERBOSE_LOGS.let { key ->
+            Constants.PREF_ENABLE_VERBOSE_LOGS.let { key ->
                 jsonObject.optBoolean(key, true).let {
                     putBoolean(key, it)
                 }
             }
 
-            PREF_SPOOF_ANDROID_VERSION_FOLLOW_DEVICE.let { key ->
+            Constants.PREF_SPOOF_ANDROID_VERSION_FOLLOW_DEVICE.let { key ->
                 jsonObject.optBoolean(key, true).let {
                     putBoolean(key, it)
                 }
             }
 
-            PREF_SPOOF_ANDROID_VERSION_MANUAL.let { key ->
+            Constants.PREF_SPOOF_ANDROID_VERSION_MANUAL.let { key ->
                 jsonObject.optString(key)?.let {
                     putString(key, it)
                 }
