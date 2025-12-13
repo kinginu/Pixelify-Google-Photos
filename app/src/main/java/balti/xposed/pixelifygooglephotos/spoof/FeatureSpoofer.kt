@@ -48,41 +48,24 @@ class FeatureSpoofer: IXposedHookLoadPackage {
 
     /**
      * This is the final list of features to spoof.
-     * Gets the specific set of features to be enabled selected by the user.
-     * Default case: uses all features from "Pixel 2016" to "Pixel 2020".
+     * Update: Now reads the actual feature strings directly from Preferences,
+     * as MainActivity saves them directly.
      */
-    private val finalFeaturesToSpoof: List<String> by lazy {
+    private val finalFeaturesToSpoof: Set<String> by lazy {
+        // MainActivityでは実際の機能フラグ文字列(Set<String>)を保存するようになったため、
+        // 複雑なマッピングロジックは不要です。
+        val savedFeatures = pref.getStringSet(PREF_SPOOF_FEATURES_LIST, null)
 
-        val defaultFeatures = DeviceProps.defaultFeatures
-        val defaultFeatureLevelsName = defaultFeatures.map { it.displayName }.toSet()
+        val features = if (savedFeatures != null) {
+            log("Feature flags source: PREFS")
+            savedFeatures
+        } else {
+            log("Feature flags source: DEFAULT")
+            DeviceProps.getFeaturesUpToFromDeviceName(DeviceProps.defaultDeviceName)
+        }
 
-        val featureFlags = pref.getStringSet(PREF_SPOOF_FEATURES_LIST, defaultFeatureLevelsName)?.let { set ->
-
-            val eligibleFeatures: List<DeviceProps.Features> =
-
-                when {
-                    set.isEmpty() -> {
-                        log("Feature flags init: EMPTY SET")
-                        listOf()
-                    }
-                    set == defaultFeatureLevelsName -> {
-                        log("Feature flags init: DEFAULT SET")
-                        defaultFeatures
-                    }
-                    else -> DeviceProps.allFeatures.filter { set.contains(it.displayName) }
-                }
-
-            val allFeatureFlags = ArrayList<String>(0)
-
-            eligibleFeatures.forEach {
-                allFeatureFlags.addAll(it.featureFlags)
-            }
-
-            allFeatureFlags
-        }?: listOf()
-
-        featureFlags.apply {
-            log("Pass TRUE for feature flags: $featureFlags")
+        features.apply {
+            if (verboseLog) log("Pass TRUE for feature flags: $this")
         }
     }
 
@@ -98,16 +81,14 @@ class FeatureSpoofer: IXposedHookLoadPackage {
      * If any feature is in this list, spoof it as not present.
      * Only if preference [PREF_OVERRIDE_ROM_FEATURE_LEVELS] are enabled.
      */
-    private val featuresNotToSpoof: List<String> by lazy {
+    private val featuresNotToSpoof: Set<String> by lazy {
+        // DeviceProps内の全機能リストを取得するために、最新のデバイス(Pixel 6 Pro)を指定して取得します。
+        // これにより、定義されている全ての機能フラグのスーパーセットが取得できます。
+        val allPossibleFeatures = DeviceProps.getFeaturesUpToFromDeviceName("Pixel 6 Pro")
 
-        val allFeatureFlags = ArrayList<String>(0)
-
-        DeviceProps.allFeatures.map { it.featureFlags }.forEach {
-            allFeatureFlags.addAll(it)
-        }
-
-        allFeatureFlags.filter { it !in finalFeaturesToSpoof }.apply {
-            log("Pass FALSE for feature flags: $this")
+        // 「全ての機能」から「有効にしたい機能」を引いたものが「無効化すべき機能」です
+        (allPossibleFeatures - finalFeaturesToSpoof).apply {
+            if (verboseLog) log("Pass FALSE for feature flags: $this")
         }
     }
 
@@ -119,27 +100,31 @@ class FeatureSpoofer: IXposedHookLoadPackage {
      * Else don't set anything.
      */
     private fun spoofFeatureEnquiryResultIfNeeded(param: XC_MethodHook.MethodHookParam?){
-        val arguments = param?.args?.toList()
+        val arguments = param?.args?.toList() ?: return
+        if (arguments.isEmpty()) return
+
+        val featureName = arguments[0].toString()
 
         var passFeatureTrue = false
         var passFeatureFalse = false
 
-        arguments?.forEach {
-            if (it.toString() in finalFeaturesToSpoof) passFeatureTrue = true
-            else if (overrideCustomROMLevels){
-                if (it.toString() in featuresNotToSpoof) passFeatureFalse = true
+        if (featureName in finalFeaturesToSpoof) {
+            passFeatureTrue = true
+        } else if (overrideCustomROMLevels) {
+            if (featureName in featuresNotToSpoof) {
+                passFeatureFalse = true
             }
         }
 
-        if (passFeatureTrue) param?.setResult(true).apply {
-            if (verboseLog) log("TRUE - feature args: $arguments")
+        if (passFeatureTrue) {
+            param?.setResult(true)
+            if (verboseLog) log("TRUE - feature: $featureName")
         }
-        else if (passFeatureFalse) param?.setResult(false).apply {
-            if (verboseLog) log("FALSE - feature args: $arguments")
+        else if (passFeatureFalse) {
+            param?.setResult(false)
+            if (verboseLog) log("FALSE - feature: $featureName")
         }
-        else {
-            if (verboseLog) log("NO_CHANGE - feature args: $arguments")
-        }
+        // else: 何もしない（元の実装に任せる）
     }
 
     override fun handleLoadPackage(lpparam: XC_LoadPackage.LoadPackageParam?) {
@@ -151,7 +136,7 @@ class FeatureSpoofer: IXposedHookLoadPackage {
         if (pref.getBoolean(PREF_STRICTLY_CHECK_GOOGLE_PHOTOS, true) &&
             lpparam?.packageName != PACKAGE_NAME_GOOGLE_PHOTOS) return
 
-        log("Loaded FeatureSpoofer for ${lpparam?.packageName}")
+        if (verboseLog) log("Loaded FeatureSpoofer for ${lpparam?.packageName}")
 
         /**
          * Hook hasSystemFeature(String).
@@ -161,12 +146,9 @@ class FeatureSpoofer: IXposedHookLoadPackage {
             lpparam?.classLoader,
             METHOD_HAS_SYSTEM_FEATURE, String::class.java,
             object: XC_MethodHook() {
-
                 override fun beforeHookedMethod(param: MethodHookParam?) {
-                    super.beforeHookedMethod(param)
                     spoofFeatureEnquiryResultIfNeeded(param)
                 }
-
             }
         )
 
@@ -178,14 +160,10 @@ class FeatureSpoofer: IXposedHookLoadPackage {
             lpparam?.classLoader,
             METHOD_HAS_SYSTEM_FEATURE, String::class.java, Int::class.java,
             object: XC_MethodHook() {
-
                 override fun beforeHookedMethod(param: MethodHookParam?) {
-                    super.beforeHookedMethod(param)
                     spoofFeatureEnquiryResultIfNeeded(param)
                 }
-
             }
         )
-
     }
 }
