@@ -1,8 +1,10 @@
 package balti.xposed.pixelifygooglephotos.spoof
 
 import android.util.Log
+import balti.xposed.pixelifygooglephotos.Constants
 import balti.xposed.pixelifygooglephotos.Constants.PACKAGE_NAME_GOOGLE_PHOTOS
 import balti.xposed.pixelifygooglephotos.Constants.PREF_ENABLE_VERBOSE_LOGS
+import balti.xposed.pixelifygooglephotos.Constants.PREF_DEVICE_TO_SPOOF
 import balti.xposed.pixelifygooglephotos.Constants.PREF_OVERRIDE_ROM_FEATURE_LEVELS
 import balti.xposed.pixelifygooglephotos.Constants.PREF_SPOOF_FEATURES_LIST
 import balti.xposed.pixelifygooglephotos.Constants.PREF_STRICTLY_CHECK_GOOGLE_PHOTOS
@@ -128,6 +130,8 @@ class FeatureSpoofer: IXposedHookLoadPackage {
     }
 
     override fun handleLoadPackage(lpparam: XC_LoadPackage.LoadPackageParam?) {
+
+        if (!pref.getBoolean(Constants.PREF_MODULE_ENABLED, true)) return
 
         /**
          * If user selects to never use this on any other app other than Google photos,

@@ -18,7 +18,7 @@ object Constants {
     const val FIELD_LATEST_VERSION_CODE = "latest_version_code"
 
     // --- Shared Preferences Keys ---
-
+    const val PREF_MODULE_ENABLED = "PREF_MODULE_ENABLED"
     // ターゲットデバイス名 (例: "Pixel 5")
     const val PREF_DEVICE_TO_SPOOF = "PREF_DEVICE_TO_SPOOF"
 

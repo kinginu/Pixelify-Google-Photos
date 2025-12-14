@@ -1,11 +1,6 @@
 package balti.xposed.pixelifygooglephotos.spoof
 
-/**
- * Pixelデバイスのプロパティと、それに関連付けられた機能フラグ、Androidバージョンを定義します。
- */
 object DeviceProps {
-
-    // --- データクラス定義 ---
 
     data class AndroidVersion(
         val label: String,
@@ -22,7 +17,7 @@ object DeviceProps {
     data class DeviceEntry(
         val deviceName: String,
         val props: Map<String, String>,
-        val featureLevel: String, // ★ここを private から public に変更しました
+        val featureLevel: String,
         val androidVersion: AndroidVersion?,
     )
 
@@ -30,16 +25,6 @@ object DeviceProps {
         val name: String,
         val flags: List<String>
     )
-
-    // --- 定数定義 (Android Version) ---
-
-    private val VER_7_1_2 = AndroidVersion("Nougat 7.1.2", "7.1.2", 25)
-    private val VER_8_1_0 = AndroidVersion("Oreo 8.1.0", "8.1.0", 27)
-    private val VER_10_0 = AndroidVersion("Q 10.0", "10", 29)
-    private val VER_11_0 = AndroidVersion("R 11.0", "11", 30)
-    private val VER_12_0 = AndroidVersion("S 12.0", "12", 31)
-
-    // --- 機能フラグ定義 ---
 
     private val allFeatureLevels = listOf(
         FeatureLevel("Pixel 2016", listOf(
@@ -83,11 +68,7 @@ object DeviceProps {
         )),
     )
 
-    // --- デバイスリスト定義 ---
-
     val allDevices = listOf(
-        DeviceEntry("None", mapOf(), "None", null),
-
         DeviceEntry(
             deviceName = "Pixel XL",
             props = mapOf(
@@ -99,7 +80,7 @@ object DeviceProps {
                 "FINGERPRINT" to "google/marlin/marlin:10/QP1A.191005.007.A3/5972272:user/release-keys"
             ),
             featureLevel = "Pixel 2016",
-            androidVersion = VER_10_0
+            androidVersion = AndroidVersion("Q 10.0", "10", 29)
         ),
         DeviceEntry(
             deviceName = "Pixel 2",
@@ -112,7 +93,7 @@ object DeviceProps {
                 "FINGERPRINT" to "google/walleye/walleye:8.1.0/OPM1.171019.021/4565141:user/release-keys"
             ),
             featureLevel = "Pixel 2017",
-            androidVersion = VER_8_1_0
+            androidVersion = AndroidVersion("Oreo 8.1.0", "8.1.0", 27)
         ),
         DeviceEntry(
             deviceName = "Pixel 3 XL",
@@ -125,7 +106,7 @@ object DeviceProps {
                 "FINGERPRINT" to "google/crosshatch/crosshatch:11/RQ3A.211001.001/7641976:user/release-keys"
             ),
             featureLevel = "Pixel 2018",
-            androidVersion = VER_11_0
+            androidVersion = AndroidVersion("R 11.0", "11", 30)
         ),
         DeviceEntry(
             deviceName = "Pixel 3a XL",
@@ -138,7 +119,7 @@ object DeviceProps {
                 "FINGERPRINT" to "google/bonito/bonito:11/RQ3A.211001.001/7641976:user/release-keys"
             ),
             featureLevel = "Pixel 2019 mid-year",
-            androidVersion = VER_11_0
+            androidVersion = AndroidVersion("R 11.0", "11", 30)
         ),
         DeviceEntry(
             deviceName = "Pixel 4 XL",
@@ -151,7 +132,7 @@ object DeviceProps {
                 "FINGERPRINT" to "google/coral/coral:12/SP1A.211105.002/7743617:user/release-keys"
             ),
             featureLevel = "Pixel 2019",
-            androidVersion = VER_12_0
+            androidVersion = AndroidVersion("S 12.0", "12", 31)
         ),
         DeviceEntry(
             deviceName = "Pixel 4a",
@@ -164,7 +145,7 @@ object DeviceProps {
                 "FINGERPRINT" to "google/sunfish/sunfish:11/RQ3A.211001.001/7641976:user/release-keys"
             ),
             featureLevel = "Pixel 2020 mid-year",
-            androidVersion = VER_11_0
+            androidVersion = AndroidVersion("R 11.0", "11", 30)
         ),
         DeviceEntry(
             deviceName = "Pixel 5",
@@ -177,7 +158,7 @@ object DeviceProps {
                 "FINGERPRINT" to "google/redfin/redfin:12/SP1A.211105.003/7757856:user/release-keys"
             ),
             featureLevel = "Pixel 2020",
-            androidVersion = VER_12_0
+            androidVersion = AndroidVersion("S 12.0", "12", 31)
         ),
         DeviceEntry(
             deviceName = "Pixel 5a",
@@ -190,7 +171,7 @@ object DeviceProps {
                 "FINGERPRINT" to "google/barbet/barbet:11/RD2A.211001.002/7644766:user/release-keys"
             ),
             featureLevel = "Pixel 2021 mid-year",
-            androidVersion = VER_11_0
+            androidVersion = AndroidVersion("R 11.0", "11", 30)
         ),
         DeviceEntry(
             deviceName = "Pixel 6 Pro",
@@ -203,13 +184,13 @@ object DeviceProps {
                 "FINGERPRINT" to "google/raven/raven:12/SD1A.210817.036/7805805:user/release-keys"
             ),
             featureLevel = "Pixel 2021",
-            androidVersion = VER_12_0
+            androidVersion = AndroidVersion("S 12.0", "12", 31)
         ),
     )
 
     // --- パブリック API ---
 
-    const val defaultDeviceName = "Pixel 5"
+    const val defaultDeviceName = "Pixel XL"
 
     fun getDeviceProps(deviceName: String?): DeviceEntry? =
         allDevices.find { it.deviceName == deviceName }

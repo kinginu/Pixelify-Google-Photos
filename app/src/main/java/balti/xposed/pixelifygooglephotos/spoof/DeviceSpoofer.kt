@@ -1,6 +1,5 @@
 package balti.xposed.pixelifygooglephotos.spoof
 
-import android.os.Build
 import android.util.Log
 import balti.xposed.pixelifygooglephotos.Constants
 import balti.xposed.pixelifygooglephotos.Constants.PACKAGE_NAME_GOOGLE_PHOTOS
@@ -40,6 +39,7 @@ class DeviceSpoofer: IXposedHookLoadPackage {
     }
 
     override fun handleLoadPackage(lpparam: XC_LoadPackage.LoadPackageParam?) {
+        if (!pref.getBoolean(Constants.PREF_MODULE_ENABLED, true)) return
 
         if (pref.getBoolean(PREF_STRICTLY_CHECK_GOOGLE_PHOTOS, true) &&
             lpparam?.packageName != PACKAGE_NAME_GOOGLE_PHOTOS) return
